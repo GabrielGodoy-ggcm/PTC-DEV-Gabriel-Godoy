@@ -1,6 +1,7 @@
 //CRUD
 import { Request, Response } from "express"; //req = in resp= out
 import prisma from "@database"; //puxa o banco de dados 
+import { buscarTamanho as buscarTamanhoREP, buscarMarca as buscarMarcaREP, contarTotalPares as contarTotalParesREP } from "../repositorie/CalcadosRepositorie"; //puxa as funçoes do repositories e o as eu usei para nao dar conflito entre as funçoes 
 //create - cadastro dos calçados/sapato 
 export const criarCalcado = async (req: Request, res: Response) => {
     try {
@@ -83,6 +84,57 @@ export const deletarCalcado = async (req: Request, res: Response) => {
     } catch (error) {
         return res.status(400).json({
             message: "Não foi possivel apagar o calçado!",
+            error,
+        });
+    }
+};
+//DESAFIO EXTRA 
+//busca calçados por tamanho
+export const buscarTamanho = async (req: Request, res: Response) => {
+    try {
+        const { tamanho } = req.params; //pega o tamanho pela url
+        const calcados = await buscarTamanhoREP(Number(tamanho)); //chama a função do repositorie
+        if (calcados.length === 0) { //se nao achar nenhum calçado desse tamanho
+            return res.status(404).json({message: "Nenhum calçado encontrado nesse tamanho!",
+            });
+        }
+        return res.status(200).json(calcados); //retorna todos os calçads encontrados
+    } catch (error) {
+        return res.status(400).json({ //deu errado
+            message: "Erro ao buscar por tamanho!",
+            error,
+        });
+    }
+};
+//busca calçados por marca
+export const buscarMarca = async (req: Request, res: Response) => {
+    try {
+        const { marca } = req.params; //pega a marca pela url
+        const calcados = await buscarMarcaREP(marca); //chama a função do repositories
+        if (calcados.length === 0) {
+            return res.status(404).json({
+                message: "Nenhum calçado encontrado dessa marca!",
+            });
+        }
+        return res.status(200).json(calcados); //manda todos os que foram encontrados com aquela marca
+    } catch (error) {
+        return res.status(400).json({ //erro
+            message: "Erro ao buscar por marca!",
+            error,
+        });
+    }
+};
+//conta o total de pares no estoque
+export const contarPares = async (req: Request, res: Response) => {
+    try {
+        const total = await contarTotalParesREP(); //chama a função do repositories
+        return res.status(200).json({ //deu certo e contou o total
+            message: `Total de pares no estoque: ${total}`, //mostra o numero total, tem que colocar um $ antes do total, 30min para descobrir o erro e era isso :(
+            total,
+        });
+    } catch (error) {
+        return res.status(400).json({ //deu erro
+            message: "Erro ao contar pares!",
             error,
         });
     }
